@@ -25,7 +25,9 @@
     <!-- Onboarding UX (2026-07-24): collapsible setup + accessibility steps + gestures/voice
          command reference lists. See docs/superpowers/specs/2026-07-24-onboarding-ux-english-design.md -->
     <string name="setup_complete_label">✓ Complete</string>
-    <string name="setup_onetime_note">One-time setup — after granting access and connecting once, the app remembers and reconnects automatically.</string>
+    <string name="setup_onetime_note">One-time setup — tap \"Grant permissions\" repeatedly (it takes 3-4 taps) until it stops asking for anything, then connect the glasses. After that, the app remembers everything and reconnects automatically.</string>
+    <string name="status_permissions_ready">Permissions OK — ready to connect the glasses</string>
+    <string name="countdown_accept_usb_prompt">Accept the USB prompt now — %1$ds</string>
     <string name="accessibility_steps">1. Tap \"Open Accessibility Settings\" below\n2. Find \"Hand Mouse\" in the list\n3. Enable it and confirm</string>
     <string name="section_gestures">GESTURES</string>
     <string name="gestures_list">Pinch (thumb + index) — tap to click, hold + move to drag\nOpen palm + swipe — media control (left/right = seek, up/down = volume); cursor freezes\nClosed fist, hold 2s — recenter cursor\nThumbs up, hold 1s — hide/show cursor\nV sign, hold 0.5s — start voice command listening</string>

@@ -411,7 +411,7 @@ class MainActivity : AppCompatActivity(), EyeCaptureService.StateListener, EyeCa
         // texto real ([STREAMING]/[ERROR]...) que onStateChanged mantém.
         val pipelineState = EyeCaptureService.getInstance()?.state
         if (ready && (pipelineState == null || pipelineState == EyeCaptureService.PipelineState.IDLE)) {
-            statusText.text = "Permissões OK — pronto para conectar os óculos"
+            statusText.text = getString(R.string.status_permissions_ready)
         }
     }
 
@@ -576,7 +576,7 @@ class MainActivity : AppCompatActivity(), EyeCaptureService.StateListener, EyeCa
         countdownTimer?.cancel()
         countdownTimer = object : CountDownTimer(HANDSHAKE_WARNING_SECONDS * 1000L, 1000L) {
             override fun onTick(millisUntilFinished: Long) {
-                countdownText.text = "Aceite o prompt USB agora — ${millisUntilFinished / 1000}s"
+                countdownText.text = getString(R.string.countdown_accept_usb_prompt, millisUntilFinished / 1000)
             }
 
             override fun onFinish() {
