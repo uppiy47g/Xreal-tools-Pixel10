@@ -1,48 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Hand Mouse</string>
-    <string name="app_subtitle">Mouse por gestos para XREAL + DeX</string>
-    <string name="notif_channel_capture">Captura da câmera Eye</string>
-    <string name="notif_capture_text">Capturando câmera Eye</string>
-    <string name="status_idle">Aguardando permissões…</string>
-    <string name="btn_grant_permissions">1. Conceder permissões</string>
-    <string name="btn_start_capture">2. Conectar óculos e iniciar captura</string>
-    <string name="usb_prompt_warning">Conecte os óculos e aceite os 2 prompts de permissão USB o mais rápido possível — o handshake dá timeout se demorar.</string>
-    <string name="btn_open_accessibility_settings">Abrir configurações de acessibilidade</string>
-    <string name="accessibility_status_active">Serviço de acessibilidade (cursor no DeX): ativo</string>
-    <string name="accessibility_status_inactive">Serviço de acessibilidade (cursor no DeX): inativo — ative em Configurações</string>
-    <string name="dex_display_status_none">Display do DeX: não encontrado</string>
+    <string name="app_subtitle">Gesture mouse for XREAL + DeX</string>
+    <string name="notif_channel_capture">Eye camera capture</string>
+    <string name="notif_capture_text">Capturing eye camera</string>
+    <string name="status_idle">Waiting for permissions…</string>
+    <string name="btn_grant_permissions">1. Grant permissions</string>
+    <string name="btn_start_capture">2. Connect glasses &amp; start capture</string>
+    <string name="usb_prompt_warning">Connect the glasses and accept both USB permission prompts as quickly as possible — the handshake times out if it takes too long.</string>
+    <string name="btn_open_accessibility_settings">Open Accessibility Settings</string>
+    <string name="accessibility_status_active">Accessibility service (DeX cursor): active</string>
+    <string name="accessibility_status_inactive">Accessibility service (DeX cursor): inactive — enable it below</string>
+    <string name="dex_display_status_none">DeX display: not found</string>
 
-    <!-- Eyebrows (labels de seção) — maiúsculas por convenção visual de painel de instrumentos -->
+    <!-- Eyebrows (section labels) — uppercase by visual convention of an instrument panel -->
     <string name="section_setup">SETUP</string>
-    <string name="section_cursor">CURSOR NO DEX</string>
-    <string name="section_battery">ANTI-KILL SAMSUNG</string>
-    <string name="btn_preview_show">Mostrar</string>
-    <string name="btn_preview_hide">Ocultar</string>
+    <string name="section_cursor">CURSOR ON DEX</string>
+    <string name="section_battery">SAMSUNG ANTI-KILL</string>
+    <string name="btn_preview_show">Show</string>
+    <string name="btn_preview_hide">Hide</string>
     <string name="section_preview">PREVIEW · TRACKING</string>
     <string name="section_log">LOG</string>
 
+    <!-- Onboarding UX (2026-07-24): collapsible setup + accessibility steps + gestures/voice
+         command reference lists. See docs/superpowers/specs/2026-07-24-onboarding-ux-english-design.md -->
+    <string name="setup_complete_label">✓ Complete</string>
+    <string name="setup_onetime_note">One-time setup — after granting access and connecting once, the app remembers and reconnects automatically.</string>
+    <string name="accessibility_steps">1. Tap \"Open Accessibility Settings\" below\n2. Find \"Hand Mouse\" in the list\n3. Enable it and confirm</string>
+    <string name="section_gestures">GESTURES</string>
+    <string name="gestures_list">Pinch (thumb + index) — tap to click, hold + move to drag\nOpen palm + swipe — media control (left/right = seek, up/down = volume); cursor freezes\nClosed fist, hold 2s — recenter cursor\nThumbs up, hold 1s — hide/show cursor\nV sign, hold 0.5s — start voice command listening</string>
+    <string name="section_voice_commands">VOICE COMMANDS</string>
+    <string name="voice_commands_list_system">Back / Voltar — go back\nHome / Início / Close / Fechar — go to home screen\nRecents / Recentes — open recent apps\nSend / Enviar — press Enter\nClear / Apagar tudo — clear text\nOpen &lt;app name&gt; / Abrir &lt;nome do app&gt; — launch an app\nWrite &lt;text&gt; / Escrever &lt;texto&gt; — dictate text</string>
+    <string name="voice_commands_list_en">Back — go back\nHome / Close — go to home screen\nRecents — open recent apps\nSend — press Enter\nClear — clear text\nOpen &lt;app name&gt; — launch an app\nWrite &lt;text&gt; — dictate text</string>
+    <string name="voice_commands_list_pt">Voltar — go back\nInício / Fechar — go to home screen\nRecentes — open recent apps\nEnviar — press Enter\nApagar tudo — clear text\nAbrir &lt;nome do app&gt; — launch an app\nEscrever &lt;texto&gt; — dictate text</string>
 
     <!-- Tarefa 5: notificações de watchdog / reconexão USB -->
-    <string name="notif_channel_watchdog">Alertas do mouse virtual</string>
-    <string name="notif_watchdog_title">Captura parou de rodar</string>
-    <string name="notif_watchdog_text">Toque para reabrir o app e retomar a captura</string>
+    <string name="notif_channel_watchdog">Virtual mouse alerts</string>
+    <string name="notif_watchdog_title">Capture stopped</string>
+    <string name="notif_watchdog_text">Tap to reopen the app and resume capture</string>
     <!-- Canal IMPORTANCE_HIGH separado do de captura (fix de revisão) — ver Javadoc de
          EyeCaptureService ("Reconexão USB") sobre por que a importância do canal importa. -->
-    <string name="notif_channel_usb_detached">Óculos desconectados</string>
-    <string name="notif_usb_detached_title">Óculos desconectados</string>
-    <string name="notif_usb_detached_text">Toque para reconectar</string>
+    <string name="notif_channel_usb_detached">Glasses disconnected</string>
+    <string name="notif_usb_detached_title">Glasses disconnected</string>
+    <string name="notif_usb_detached_text">Tap to reconnect</string>
 
     <!-- Tarefa 5: card de checklist anti-kill Samsung (PLANO.md §7 item 4) — best-effort,
          versão mínima (não o checklist completo, fora de escopo desta tarefa) -->
-    <string name="battery_checklist_title">Para o app não ser morto em segundo plano no Samsung, verifique manualmente cada item abaixo:</string>
-    <string name="btn_battery_app_settings">1. Bateria do app: definir como Irrestrito</string>
-    <string name="btn_battery_background_usage">2. Apps que nunca entram em suspensão</string>
-    <string name="btn_battery_device_settings">3. Configurações de bateria do aparelho</string>
+    <string name="battery_checklist_title">To keep the app from being killed in the background on Samsung, manually check each item below:</string>
+    <string name="btn_battery_app_settings">1. App battery: set to Unrestricted</string>
+    <string name="btn_battery_background_usage">2. Apps that never sleep</string>
+    <string name="btn_battery_device_settings">3. Device battery settings</string>
 
     <!-- Controle por voz (2026-07-23) -->
-    <string name="voice_language_label">Idioma do reconhecimento de voz</string>
-    <string name="voice_language_system">Sistema</string>
+    <string name="voice_language_label">Voice recognition language</string>
+    <string name="voice_language_system">System</string>
     <string name="voice_language_pt">Português</string>
     <string name="voice_language_en">English</string>
 </resources>
