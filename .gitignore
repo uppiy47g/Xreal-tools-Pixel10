@@ -15,6 +15,8 @@ captures/
 # session scratch
 .superpowers/
 
-# Blobs proprietarios XREAL (licenca — NAO commitar; extrair conforme PROXIMOS_PASSOS Passo 0)
+# Defense-in-depth: never commit proprietary XREAL blobs. The app itself uses
+# NONE — the glasses protocol is reimplemented in pure Kotlin. These rules just
+# prevent any such files from ever being committed by accident.
 xreal-hand-mouse/app/src/main/jniLibs/
 xreal-hand-mouse/app/src/main/assets/nr_ota_default/
