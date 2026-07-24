@@ -203,12 +203,22 @@
                         android:text="@string/accessibility_status_inactive" />
                 </LinearLayout>
 
+                <TextView
+                    android:id="@+id/accessibilitySteps"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:textSize="12sp"
+                    android:textColor="@color/hm_text_secondary"
+                    android:lineSpacingExtra="2dp"
+                    android:text="@string/accessibility_steps" />
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnOpenAccessibilitySettings"
                     style="@style/Hm.Button.Outlined"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="8dp"
                     android:text="@string/btn_open_accessibility_settings" />
 
                 <TextView
