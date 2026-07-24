@@ -78,6 +78,8 @@ class MainActivity : AppCompatActivity(), EyeCaptureService.StateListener, EyeCa
     private lateinit var btnOpenAccessibilitySettings: Button
     private lateinit var dexDisplayStatusText: TextView
     private lateinit var voiceLangGroup: RadioGroup
+    private lateinit var gesturesCard: View
+    private lateinit var btnToggleGestures: Button
 
     // Tarefa 5: checklist anti-kill Samsung (best-effort, ver runBestEffortIntent).
     private lateinit var btnBatteryAppSettings: Button
@@ -168,6 +170,8 @@ class MainActivity : AppCompatActivity(), EyeCaptureService.StateListener, EyeCa
         btnOpenAccessibilitySettings = findViewById(R.id.btnOpenAccessibilitySettings)
         dexDisplayStatusText = findViewById(R.id.dexDisplayStatusText)
         voiceLangGroup = findViewById(R.id.voiceLangGroup)
+        gesturesCard = findViewById(R.id.gesturesCard)
+        btnToggleGestures = findViewById(R.id.btnToggleGestures)
         btnTogglePreview = findViewById(R.id.btnTogglePreview)
         previewCard = findViewById(R.id.previewCard)
         btnBatteryAppSettings = findViewById(R.id.btnBatteryAppSettings)
@@ -189,6 +193,9 @@ class MainActivity : AppCompatActivity(), EyeCaptureService.StateListener, EyeCa
             appendLog("Abrindo configurações de acessibilidade")
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         }
+
+        btnToggleGestures.setOnClickListener { setGesturesVisible(!prefs.gesturesVisible) }
+        setGesturesVisible(prefs.gesturesVisible)
 
         // Seletor de idioma do reconhecimento de voz (2026-07-23, spec voice-control):
         // default "system"; a escolha vale a partir da PRÓXIMA sessão de escuta (o
@@ -482,6 +489,15 @@ class MainActivity : AppCompatActivity(), EyeCaptureService.StateListener, EyeCa
         // a visibilidade do preview 1:1.
         service.previewFramesEnabled = visible
         if (visible) service.addTrackingListener(this) else service.removeTrackingListener(this)
+    }
+
+    /** Colapsa/expande o card de gestos (2026-07-24, onboarding UX) — mesmo padrão do preview,
+     * sem efeito colateral no serviço (é conteúdo estático). */
+    private fun setGesturesVisible(visible: Boolean) {
+        prefs.gesturesVisible = visible
+        gesturesCard.visibility = if (visible) View.VISIBLE else View.GONE
+        btnToggleGestures.text =
+            getString(if (visible) R.string.btn_preview_hide else R.string.btn_preview_show)
     }
 
     // --- EyeCaptureService.StateListener ---
