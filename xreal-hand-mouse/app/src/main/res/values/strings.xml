@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Hand Mouse</string>
+    <string name="app_subtitle">Mouse por gestos para XREAL + DeX</string>
+    <string name="notif_channel_capture">Captura da câmera Eye</string>
+    <string name="notif_capture_text">Capturando câmera Eye</string>
+    <string name="status_idle">Aguardando permissões…</string>
+    <string name="btn_grant_permissions">1. Conceder permissões</string>
+    <string name="btn_start_capture">2. Conectar óculos e iniciar captura</string>
+    <string name="usb_prompt_warning">Conecte os óculos e aceite os 2 prompts de permissão USB o mais rápido possível — o handshake dá timeout se demorar.</string>
+    <string name="btn_open_accessibility_settings">Abrir configurações de acessibilidade</string>
+    <string name="accessibility_status_active">Serviço de acessibilidade (cursor no DeX): ativo</string>
+    <string name="accessibility_status_inactive">Serviço de acessibilidade (cursor no DeX): inativo — ative em Configurações</string>
+    <string name="dex_display_status_none">Display do DeX: não encontrado</string>
+
+    <!-- Eyebrows (labels de seção) — maiúsculas por convenção visual de painel de instrumentos -->
+    <string name="section_setup">SETUP</string>
+    <string name="section_cursor">CURSOR NO DEX</string>
+    <string name="section_battery">ANTI-KILL SAMSUNG</string>
+    <string name="btn_preview_show">Mostrar</string>
+    <string name="btn_preview_hide">Ocultar</string>
+    <string name="section_preview">PREVIEW · TRACKING</string>
+    <string name="section_log">LOG</string>
+
+
+    <!-- Tarefa 5: notificações de watchdog / reconexão USB -->
+    <string name="notif_channel_watchdog">Alertas do mouse virtual</string>
+    <string name="notif_watchdog_title">Captura parou de rodar</string>
+    <string name="notif_watchdog_text">Toque para reabrir o app e retomar a captura</string>
+    <!-- Canal IMPORTANCE_HIGH separado do de captura (fix de revisão) — ver Javadoc de
+         EyeCaptureService ("Reconexão USB") sobre por que a importância do canal importa. -->
+    <string name="notif_channel_usb_detached">Óculos desconectados</string>
+    <string name="notif_usb_detached_title">Óculos desconectados</string>
+    <string name="notif_usb_detached_text">Toque para reconectar</string>
+
+    <!-- Tarefa 5: card de checklist anti-kill Samsung (PLANO.md §7 item 4) — best-effort,
+         versão mínima (não o checklist completo, fora de escopo desta tarefa) -->
+    <string name="battery_checklist_title">Para o app não ser morto em segundo plano no Samsung, verifique manualmente cada item abaixo:</string>
+    <string name="btn_battery_app_settings">1. Bateria do app: definir como Irrestrito</string>
+    <string name="btn_battery_background_usage">2. Apps que nunca entram em suspensão</string>
+    <string name="btn_battery_device_settings">3. Configurações de bateria do aparelho</string>
+
+    <!-- Controle por voz (2026-07-23) -->
+    <string name="voice_language_label">Idioma do reconhecimento de voz</string>
+    <string name="voice_language_system">Sistema</string>
+    <string name="voice_language_pt">Português</string>
+    <string name="voice_language_en">English</string>
+</resources>

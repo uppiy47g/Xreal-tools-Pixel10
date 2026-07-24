@@ -1,0 +1,20 @@
+# Android / Gradle
+**/build/
+.gradle/
+**/.gradle/
+local.properties
+*/local.properties
+.idea/
+*/.idea/
+*.iml
+captures/
+.cxx/
+*.apk
+!*/gradle/wrapper/gradle-wrapper.jar
+
+# session scratch
+.superpowers/
+
+# Blobs proprietarios XREAL (licenca — NAO commitar; extrair conforme PROXIMOS_PASSOS Passo 0)
+xreal-hand-mouse/app/src/main/jniLibs/
+xreal-hand-mouse/app/src/main/assets/nr_ota_default/
