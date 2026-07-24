@@ -80,6 +80,9 @@ class MainActivity : AppCompatActivity(), EyeCaptureService.StateListener, EyeCa
     private lateinit var voiceLangGroup: RadioGroup
     private lateinit var gesturesCard: View
     private lateinit var btnToggleGestures: Button
+    private lateinit var voiceCommandsCard: View
+    private lateinit var btnToggleVoiceCommands: Button
+    private lateinit var voiceCommandsText: TextView
 
     // Tarefa 5: checklist anti-kill Samsung (best-effort, ver runBestEffortIntent).
     private lateinit var btnBatteryAppSettings: Button
@@ -172,6 +175,9 @@ class MainActivity : AppCompatActivity(), EyeCaptureService.StateListener, EyeCa
         voiceLangGroup = findViewById(R.id.voiceLangGroup)
         gesturesCard = findViewById(R.id.gesturesCard)
         btnToggleGestures = findViewById(R.id.btnToggleGestures)
+        voiceCommandsCard = findViewById(R.id.voiceCommandsCard)
+        btnToggleVoiceCommands = findViewById(R.id.btnToggleVoiceCommands)
+        voiceCommandsText = findViewById(R.id.voiceCommandsText)
         btnTogglePreview = findViewById(R.id.btnTogglePreview)
         previewCard = findViewById(R.id.previewCard)
         btnBatteryAppSettings = findViewById(R.id.btnBatteryAppSettings)
@@ -197,6 +203,10 @@ class MainActivity : AppCompatActivity(), EyeCaptureService.StateListener, EyeCa
         btnToggleGestures.setOnClickListener { setGesturesVisible(!prefs.gesturesVisible) }
         setGesturesVisible(prefs.gesturesVisible)
 
+        btnToggleVoiceCommands.setOnClickListener { setVoiceCommandsVisible(!prefs.voiceCommandsVisible) }
+        setVoiceCommandsVisible(prefs.voiceCommandsVisible)
+        updateVoiceCommandsText()
+
         // Seletor de idioma do reconhecimento de voz (2026-07-23, spec voice-control):
         // default "system"; a escolha vale a partir da PRÓXIMA sessão de escuta (o
         // VoiceCommandController lê o pref a cada startListening — sem restart).
@@ -213,6 +223,7 @@ class MainActivity : AppCompatActivity(), EyeCaptureService.StateListener, EyeCa
                 else -> com.raphael.handmouse.util.Prefs.VOICE_LANGUAGE_SYSTEM
             }
             appendLog("Idioma do reconhecimento de voz: ${prefs.voiceLanguage}")
+            updateVoiceCommandsText()
         }
 
         btnBatteryAppSettings.setOnClickListener {
@@ -498,6 +509,31 @@ class MainActivity : AppCompatActivity(), EyeCaptureService.StateListener, EyeCa
         gesturesCard.visibility = if (visible) View.VISIBLE else View.GONE
         btnToggleGestures.text =
             getString(if (visible) R.string.btn_preview_hide else R.string.btn_preview_show)
+    }
+
+    /** Colapsa/expande o card de comandos de voz (2026-07-24, onboarding UX) — mesmo padrão do
+     * card de gestos. */
+    private fun setVoiceCommandsVisible(visible: Boolean) {
+        prefs.voiceCommandsVisible = visible
+        voiceCommandsCard.visibility = if (visible) View.VISIBLE else View.GONE
+        btnToggleVoiceCommands.text =
+            getString(if (visible) R.string.btn_preview_hide else R.string.btn_preview_show)
+    }
+
+    /** Troca o texto do card de comandos de voz conforme [Prefs.voiceLanguage] (2026-07-24):
+     * "system" mostra as duas formas (pt+en), "pt-BR"/"en-US" mostram só a forma do idioma
+     * escolhido — o parser ([com.raphael.handmouse.input.VoiceCommandParser]) sempre aceita as
+     * duas independente desta escolha (que só afeta a qualidade do reconhecimento de fala), mas
+     * a LISTA exibida reflete o idioma selecionado pra não confundir o usuário com frases que
+     * ele não pediu pra usar. */
+    private fun updateVoiceCommandsText() {
+        voiceCommandsText.text = getString(
+            when (prefs.voiceLanguage) {
+                "pt-BR" -> R.string.voice_commands_list_pt
+                "en-US" -> R.string.voice_commands_list_en
+                else -> R.string.voice_commands_list_system
+            }
+        )
     }
 
     // --- EyeCaptureService.StateListener ---
