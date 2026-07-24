@@ -76,11 +76,45 @@
             android:textColor="@color/hm_warning"
             android:text="" />
 
-        <!-- ===================== CARD: SETUP ===================== -->
-        <com.google.android.material.card.MaterialCardView
+        <!-- ===================== SETUP (colapsável após 1ª conexão — 2026-07-24) ===================== -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                style="@style/Hm.Eyebrow"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/section_setup" />
+
+            <TextView
+                android:id="@+id/setupCompleteLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:visibility="gone"
+                android:textSize="12sp"
+                android:textColor="@color/hm_accent"
+                android:text="@string/setup_complete_label" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnToggleSetup"
+                style="@style/Hm.Button.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:text="@string/btn_preview_hide" />
+        </LinearLayout>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/setupCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             app:cardBackgroundColor="@color/hm_surface"
             app:cardCornerRadius="16dp"
             app:cardElevation="0dp"
@@ -94,10 +128,14 @@
                 android:orientation="vertical">
 
                 <TextView
-                    style="@style/Hm.Eyebrow"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/setupOnetimeNote"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/section_setup" />
+                    android:layout_marginBottom="10dp"
+                    android:textSize="12sp"
+                    android:textColor="@color/hm_text_secondary"
+                    android:lineSpacingExtra="2dp"
+                    android:text="@string/setup_onetime_note" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnGrantPermissions"

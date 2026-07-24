@@ -63,6 +63,10 @@ class MainActivity : AppCompatActivity(), EyeCaptureService.StateListener, EyeCa
     private lateinit var logText: TextView
     private lateinit var btnGrantPermissions: Button
     private lateinit var btnStartCapture: Button
+    private lateinit var setupCard: View
+    private lateinit var setupOnetimeNote: View
+    private lateinit var setupCompleteLabel: View
+    private lateinit var btnToggleSetup: Button
     private lateinit var previewImage: ImageView
     private lateinit var handOverlay: HandOverlayView
     // Preview recolhível (2026-07-23, pedido do usuário): recolhido, a Activity se DESREGISTRA
@@ -154,6 +158,10 @@ class MainActivity : AppCompatActivity(), EyeCaptureService.StateListener, EyeCa
         logText.movementMethod = ScrollingMovementMethod()
         btnGrantPermissions = findViewById(R.id.btnGrantPermissions)
         btnStartCapture = findViewById(R.id.btnStartCapture)
+        setupCard = findViewById(R.id.setupCard)
+        setupOnetimeNote = findViewById(R.id.setupOnetimeNote)
+        setupCompleteLabel = findViewById(R.id.setupCompleteLabel)
+        btnToggleSetup = findViewById(R.id.btnToggleSetup)
         previewImage = findViewById(R.id.previewImage)
         handOverlay = findViewById(R.id.handOverlay)
         accessibilityStatusText = findViewById(R.id.accessibilityStatusText)
@@ -172,6 +180,10 @@ class MainActivity : AppCompatActivity(), EyeCaptureService.StateListener, EyeCa
 
         btnGrantPermissions.setOnClickListener { runPermissionWizard() }
         btnStartCapture.setOnClickListener { startCapture() }
+        btnToggleSetup.setOnClickListener {
+            prefs.setupSectionExpanded = !prefs.setupSectionExpanded
+            applySetupSectionState()
+        }
         btnTogglePreview.setOnClickListener { setPreviewVisible(!prefs.previewVisible) }
         btnOpenAccessibilitySettings.setOnClickListener {
             appendLog("Abrindo configurações de acessibilidade")
@@ -225,6 +237,7 @@ class MainActivity : AppCompatActivity(), EyeCaptureService.StateListener, EyeCa
         }
 
         updatePermissionsButtonState()
+        applySetupSectionState()
     }
 
     override fun onResume() {
@@ -384,6 +397,19 @@ class MainActivity : AppCompatActivity(), EyeCaptureService.StateListener, EyeCa
         }
     }
 
+    /** Aplica o estado colapsado/expandido do card de Setup (2026-07-24, onboarding UX):
+     * botão Show/Hide, checkmark "✓ Complete" (só quando [Prefs.setupCompleted]) e a nota de
+     * "one-time setup" (some assim que o setup completou, mesmo se o usuário reabrir o card
+     * manualmente depois). Chamado no onCreate, no toggle manual e ao completar o setup pela
+     * primeira vez (ver [onStateChanged]). */
+    private fun applySetupSectionState() {
+        val expanded = prefs.setupSectionExpanded
+        setupCard.visibility = if (expanded) View.VISIBLE else View.GONE
+        btnToggleSetup.text = getString(if (expanded) R.string.btn_preview_hide else R.string.btn_preview_show)
+        setupCompleteLabel.visibility = if (prefs.setupCompleted) View.VISIBLE else View.GONE
+        setupOnetimeNote.visibility = if (prefs.setupCompleted) View.GONE else View.VISIBLE
+    }
+
     // --- Captura ---
 
     /** Ver [ensureUsbPermissionThenStart] — o botão agora passa pelo grant USB primeiro. */
@@ -471,6 +497,15 @@ class MainActivity : AppCompatActivity(), EyeCaptureService.StateListener, EyeCa
             EyeCaptureService.PipelineState.ERROR -> R.color.hm_error
             else -> R.color.hm_warning
         })
+
+        // Onboarding UX (2026-07-24): 1ª vez que o pipeline chega a STREAMING com as permissões
+        // do wizard OK, marca o setup como completo e colapsa o card automaticamente — dali em
+        // diante o usuário controla show/hide manualmente (ver applySetupSectionState).
+        if (state == EyeCaptureService.PipelineState.STREAMING && !prefs.setupCompleted && allWizardPermissionsGranted()) {
+            prefs.setupCompleted = true
+            prefs.setupSectionExpanded = false
+            applySetupSectionState()
+        }
 
         when (state) {
             EyeCaptureService.PipelineState.CAMERA_ENABLING,
