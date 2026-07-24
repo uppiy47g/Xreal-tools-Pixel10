@@ -17,7 +17,7 @@
 - **Interface pública do `GlassesConnection` inalterada:** `Listener`, `start()`, `stop()`, `scanForGlasses()`, `enableEyeCamera(forceReconfigure)`, constantes `XREAL_VID`/`XREAL_EYE_PID`.
 - **`KotlinGlassesProtocol.enableCameraSequence()` + hook `FORCE_CAPTURE_KOTLIN` permanecem** (artefato de paridade).
 - **Copyright:** alvo = sem `.so` proprietária + sem código verbatim de terceiro + atribuição MIT preservada (NOTICE na raiz) pros 5 arquivos MIT derivados que ficam. Nada vindo de decompilar as `.so`.
-- **Build (Windows):** `$env:JAVA_HOME='C:\Program Files\Android\Android Studio\jbr'` antes de `.\gradlew.bat`. Dir: `xreal-hand-mouse/`. adb: `C:\Users\Raphael\AppData\Local\Android\Sdk\platform-tools\adb.exe`, aparelho `192.168.15.23:5555`.
+- **Build (Windows):** `$env:JAVA_HOME='C:\Program Files\Android\Android Studio\jbr'` antes de `.\gradlew.bat`. Dir: `xreal-hand-mouse/`. adb: `C:\Users\Raphael\AppData\Local\Android\Sdk\platform-tools\adb.exe`, aparelho `<DEVICE-IP>:5555`.
 - **Sessão paralela ativa:** `git add` só nos caminhos exatos da task. NUNCA `-A`/`.`/`commit -a`. `git status --porcelain` antes de cada commit.
 - **Verificação de enumeração/streaming (não usar sysfs — SELinux bloqueia):** `dumpsys usb | grep vendor_id=13080` + logcat `EyeCaptureService` `[STREAMING]`.
 

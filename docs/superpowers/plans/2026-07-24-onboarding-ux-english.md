@@ -1124,7 +1124,7 @@ Expected: `BUILD SUCCESSFUL`, produces `app\build\outputs\apk\debug\app-debug.ap
 - [ ] **Step 3: Install on the connected device**
 
 ```powershell
-& "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe" -s 192.168.15.23:5555 install -r app\build\outputs\apk\debug\app-debug.apk
+& "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe" -s <DEVICE-IP>:5555 install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 
 (IP may have changed since it was last recorded — check `adb devices` if this fails to connect.)

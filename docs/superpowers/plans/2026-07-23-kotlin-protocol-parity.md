@@ -23,7 +23,7 @@
   [22..]   payload (opcional)
   ```
 - **Transporte:** BULK. `ep 0x01` = OUT (comandos), `ep 0x81` = IN (respostas, buffer de 1024 B). O endpoint `0x89` é vídeo UVC — **não tocar**.
-- **Build:** `$env:JAVA_HOME='C:\Program Files\Android\Android Studio\jbr'` antes de `.\gradlew.bat`. Diretório: `xreal-hand-mouse/`. adb: `C:\Users\Raphael\AppData\Local\Android\Sdk\platform-tools\adb.exe`, aparelho `192.168.15.23:5555`.
+- **Build:** `$env:JAVA_HOME='C:\Program Files\Android\Android Studio\jbr'` antes de `.\gradlew.bat`. Diretório: `xreal-hand-mouse/`. adb: `C:\Users\Raphael\AppData\Local\Android\Sdk\platform-tools\adb.exe`, aparelho `<DEVICE-IP>:5555`.
 - **`adb install -r` derruba o serviço de acessibilidade e revoga o grant USB** deste aparelho. Agrupe instalações; avise no relatório o que o usuário precisa restaurar.
 - **Sessão paralela ativa no repo:** `git add` apenas nos caminhos exatos da task. **NUNCA** `git add -A`, `git add .` ou `git commit -a`.
 - **Linha de copyright:** a única fonte legítima é a captura black-box deste projeto. Não usar a tabela de opcodes HID do repo do Aloim (falsificada pela captura e marcada como proibida no doc do protocolo).

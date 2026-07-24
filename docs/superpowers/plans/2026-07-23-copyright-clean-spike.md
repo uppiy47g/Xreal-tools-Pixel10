@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - **Plataforma:** arm64-v8a apenas; `minSdk = 34`; `compileSdk = 35`. NDK instalado: `27.1.12297006`.
-- **Build:** `$env:JAVA_HOME='C:\Program Files\Android\Android Studio\jbr'` antes de `.\gradlew.bat`. Diretório do app: `xreal-hand-mouse/`. Instalar com `adb install -r`. adb Wi-Fi da sessão: `adb connect 192.168.15.23:5555` (o IP pode mudar).
+- **Build:** `$env:JAVA_HOME='C:\Program Files\Android\Android Studio\jbr'` antes de `.\gradlew.bat`. Diretório do app: `xreal-hand-mouse/`. Instalar com `adb install -r`. adb Wi-Fi da sessão: `adb connect <DEVICE-IP>:5555` (o IP pode mudar).
 - **As 2 `.so` são obrigatórias e proprietárias:** `libota-lib.so` hospeda os JNI `Java_...XrealGlasses_*` (inclusive as 4 de câmera) e faz `NEEDED`-link em `libnr_glasses_api.so` (impl C do protocolo). Ambas ficam em `xreal-hand-mouse/app/src/main/jniLibs/arm64-v8a/`, são **gitignored** e fornecidas localmente. **NUNCA commitar as `.so` nem `assets/nr_ota_default/`.**
 - **Linha de copyright:** só observação black-box do nosso próprio processo/hardware. Ghidra é **só referência de entendimento** no ramo dinâmico; nada da estrutura de código das `.so` entra em código de produção.
 - **Toda a instrumentação do spike é debug-only:** o build release NÃO pode conter `wrap.sh` nem `libioctltap.so`. Verificado na Task 9.

@@ -1,4 +1,31 @@
-This project contains code adapted from a third-party open-source project.
+XREAL Hand Mouse
+Copyright 2026 nudou350
+
+This product is licensed under the Apache License, Version 2.0 (see the LICENSE
+file). This NOTICE file is provided for informational attribution purposes only
+and does not modify the License.
+
+"XREAL" and "Nreal" are trademarks of their respective owner. This project is an
+independent, unofficial work and is NOT affiliated with, endorsed by, or
+sponsored by XREAL. Those names are used only to describe hardware compatibility.
+
+================================================================================
+Third-party components
+================================================================================
+
+--------------------------------------------------------------------------------
+1. MediaPipe HandLandmarker model
+--------------------------------------------------------------------------------
+
+File: xreal-hand-mouse/app/src/main/assets/hand_landmarker.task
+
+Copyright Google LLC.
+Licensed under the Apache License, Version 2.0.
+  https://developers.google.com/mediapipe/solutions/vision/hand_landmarker
+
+--------------------------------------------------------------------------------
+2. Aloim reverse-engineering project (derived code)
+--------------------------------------------------------------------------------
 
 Portions of the following Kotlin source files are DERIVED FROM (adapted from,
 not copied verbatim) the Aloim reverse-engineering project:
@@ -36,7 +63,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
----
+================================================================================
+Removed proprietary components
+================================================================================
 
 The two proprietary XREAL native libraries (libota-lib.so, libnr_glasses_api.so)
 and the verbatim Java shim that declared their `native` methods

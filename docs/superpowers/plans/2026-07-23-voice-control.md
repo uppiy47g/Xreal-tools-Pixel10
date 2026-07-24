@@ -1550,7 +1550,7 @@ Esperado: BUILD SUCCESSFUL, zero testes falhando (novos: VSignDetectorTest, Voic
 - [ ] **Step 2: Instalar no aparelho (adb wireless)**
 
 ```powershell
-adb connect 192.168.15.23:5555
+adb connect <DEVICE-IP>:5555
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 Esperado: `Success`. **Atenção (memória do projeto): reinstalar o APK revoga a permissão USB dos óculos — vai precisar re-conceder no ATTACH seguinte.**

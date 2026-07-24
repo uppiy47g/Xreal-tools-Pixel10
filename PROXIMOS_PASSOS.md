@@ -62,7 +62,7 @@ Mudanças aplicadas nesta sessão (compiladas, instaladas, aguardando veredito d
 - **Dívidas técnicas do ledger** (`.superpowers/sdd/progress.md`) continuam válidas.
 
 ### Como retomar
-App já instalado no S25. Para recompilar: `cd xreal-hand-mouse; $env:JAVA_HOME='C:\Program Files\Android\Android Studio\jbr'; .\gradlew.bat assembleDebug` + `adb install -r`. adb Wi-Fi usado na sessão: `adb connect 192.168.15.23:5555` (o IP pode mudar). Fonte das lições detalhadas: memórias Vestige desta sessão (tags `xreal-hand-tracking`).
+App já instalado no S25. Para recompilar: `cd xreal-hand-mouse; $env:JAVA_HOME='C:\Program Files\Android\Android Studio\jbr'; .\gradlew.bat assembleDebug` + `adb install -r`. adb Wi-Fi usado na sessão: `adb connect <DEVICE-IP>:5555` (o IP pode mudar). Fonte das lições detalhadas: memórias Vestige desta sessão (tags `xreal-hand-tracking`).
 
 ---
 
