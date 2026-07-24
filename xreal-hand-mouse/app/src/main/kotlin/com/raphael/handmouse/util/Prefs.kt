@@ -24,6 +24,10 @@ class Prefs(context: Context) {
         private const val KEY_CAPTURE_ACTIVE = "capture_active"
         private const val KEY_PREVIEW_VISIBLE = "preview_visible"
         private const val KEY_VOICE_LANGUAGE = "voice_language"
+        private const val KEY_SETUP_COMPLETED = "setup_completed"
+        private const val KEY_SETUP_SECTION_EXPANDED = "setup_section_expanded"
+        private const val KEY_GESTURES_VISIBLE = "gestures_visible"
+        private const val KEY_VOICE_COMMANDS_VISIBLE = "voice_commands_visible"
 
         /** Valor especial de [voiceLanguage]: usa o idioma do sistema (default). */
         const val VOICE_LANGUAGE_SYSTEM = "system"
@@ -66,4 +70,31 @@ class Prefs(context: Context) {
     var voiceLanguage: String
         get() = prefs.getString(KEY_VOICE_LANGUAGE, VOICE_LANGUAGE_SYSTEM) ?: VOICE_LANGUAGE_SYSTEM
         set(value) = prefs.edit().putString(KEY_VOICE_LANGUAGE, value).apply()
+
+    /** true assim que o pipeline chegou a STREAMING com todas as permissões do wizard concedidas
+     * pelo menos uma vez (2026-07-24, onboarding UX — ver MainActivity.onStateChanged). Nunca é
+     * limpa por este design (não há "refazer setup do zero" além de reinstalar o app). */
+    var setupCompleted: Boolean
+        get() = prefs.getBoolean(KEY_SETUP_COMPLETED, false)
+        set(value) = prefs.edit().putBoolean(KEY_SETUP_COMPLETED, value).apply()
+
+    /** Visibilidade do CONTEÚDO do card de Setup (nota + os 2 botões) — não confundir com
+     * [setupCompleted]. Default true (mostrado); é forçada a false UMA VEZ, no instante em que
+     * [setupCompleted] vira true (auto-colapsa a primeira vez) — depois disso segue só o toggle
+     * manual do usuário (MainActivity.applySetupSectionState). */
+    var setupSectionExpanded: Boolean
+        get() = prefs.getBoolean(KEY_SETUP_SECTION_EXPANDED, true)
+        set(value) = prefs.edit().putBoolean(KEY_SETUP_SECTION_EXPANDED, value).apply()
+
+    /** Visibilidade do card "Gestures" (2026-07-24, onboarding UX) — conteúdo estático, sem
+     * efeito colateral no serviço; default true (mostrado). */
+    var gesturesVisible: Boolean
+        get() = prefs.getBoolean(KEY_GESTURES_VISIBLE, true)
+        set(value) = prefs.edit().putBoolean(KEY_GESTURES_VISIBLE, value).apply()
+
+    /** Visibilidade do card "Voice commands" (2026-07-24, onboarding UX) — default true
+     * (mostrado). */
+    var voiceCommandsVisible: Boolean
+        get() = prefs.getBoolean(KEY_VOICE_COMMANDS_VISIBLE, true)
+        set(value) = prefs.edit().putBoolean(KEY_VOICE_COMMANDS_VISIBLE, value).apply()
 }
