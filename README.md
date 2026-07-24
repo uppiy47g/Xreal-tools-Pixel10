@@ -210,10 +210,13 @@ The app's home screen is a stack of cards. You only do this setup **once** — a
 
 **1. SETUP**
 
-1. Tap **"1. Grant permissions"** and accept each prompt — camera, notifications, and the battery-optimization exemption. (Microphone is optional; it only enables voice commands.)
+1. Tap **"1. Grant permissions"** and accept each prompt — camera, notifications, and the battery-optimization exemption (microphone is optional; it only enables voice commands). You may have to tap it **several times (3–4)** until it stops asking — each tap surfaces the next permission.
 2. Connect the glasses over USB-C, then tap **"2. Connect glasses & start capture"**. Accept **both USB permission prompts as quickly as possible** — the handshake times out if you're slow. (A second prompt appears because activating the camera re-enumerates the device.)
 
 Once the camera is streaming, this card shows **✓ Complete** and collapses. You won't need to repeat it unless you reinstall the app.
+
+> [!NOTE]
+> **Known issue:** right after this first-time setup and granting all permissions, you may need to **unplug and replug the glasses once or twice** before capture starts reliably. A fix is on the way.
 
 **2. CURSOR ON DEX**
 
