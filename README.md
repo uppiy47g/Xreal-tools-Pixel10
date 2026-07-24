@@ -7,9 +7,6 @@ Hand Mouse turns the RGB "Eye" camera built into the [XREAL One Pro](https://www
 > [!IMPORTANT]
 > **Not affiliated with XREAL.** This is an independent, unofficial hobby project. "XREAL" and "Nreal" are trademarks of their respective owner and are used here only to describe hardware compatibility. This project is not endorsed by or sponsored by XREAL. Use at your own risk — you are interfacing with your own hardware.
 
-> [!NOTE]
-> **The first-run setup walkthrough is being rewritten** for a new onboarding UI. The reference sections below (requirements, building, permissions, controls, troubleshooting) are accurate against the current build; the step-by-step "getting started" flow will land once the new design ships.
-
 ---
 
 ## Table of contents
@@ -116,24 +113,49 @@ Run the unit tests with:
 
 ## Installing on your phone
 
-There is no prebuilt release yet, so install the APK you built:
+There is no prebuilt release yet, so install the APK you built. With USB debugging enabled on the phone:
 
 ```bash
-# With USB debugging enabled on the phone:
 adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
 
-# Or over Wi-Fi (pair once, then):
+Or over Wi-Fi (pair once, then):
+
+```bash
 adb connect <DEVICE-IP>:5555
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Then open **Hand Mouse** on the phone and grant the permissions below.
+### Quick setup via adb
+
+If you have adb handy, you can grant **most** permissions from your computer instead of tapping through every settings screen. Run these once after installing (the commands are copy-paste safe on both bash and PowerShell):
+
+```bash
+# Runtime permissions
+adb shell pm grant com.raphael.handmouse android.permission.CAMERA
+adb shell pm grant com.raphael.handmouse android.permission.RECORD_AUDIO
+adb shell pm grant com.raphael.handmouse android.permission.POST_NOTIFICATIONS
+
+# Exempt from battery optimization (Doze whitelist) — helps against background kills
+adb shell dumpsys deviceidle whitelist +com.raphael.handmouse
+
+# Enable the accessibility service (this is what draws the cursor and injects taps)
+adb shell settings put secure enabled_accessibility_services com.raphael.handmouse/com.raphael.handmouse.service.HandMouseAccessibilityService
+adb shell settings put secure accessibility_enabled 1
+```
+
+> [!WARNING]
+> The accessibility command **replaces** the list of currently-enabled accessibility services. If you already use others (e.g. TalkBack), re-enable them in Settings afterwards, or append this one to the existing value with a `:` separator.
+
+**What adb can't do:** the **two USB permission prompts** cannot be pre-granted — Android's per-device USB permission has no adb equivalent, so you must accept both on the phone when you connect the glasses (accept them quickly; the handshake times out). Samsung's deeper anti-kill toggles ("apps that never sleep") also aren't fully exposed to adb and stay manual.
+
+Then open **Hand Mouse** on the phone, connect the glasses, and accept the two USB prompts.
 
 ---
 
 ## Permissions the app needs
 
-These are Android-level requirements and don't change with the UI. The setup wizard walks you through them in order.
+These are Android-level requirements and don't change with the UI. The setup wizard walks you through them in order — or grant most of them at once with [Quick setup via adb](#quick-setup-via-adb).
 
 | Permission | Required? | Why |
 |---|---|---|
@@ -150,7 +172,7 @@ There is also an **"anti-kill" checklist** (Samsung only) that deep-links you to
 
 ## Controls — gestures & voice
 
-> Controls are derived from the current tracking code and may be refined alongside the onboarding redesign.
+> These mirror the in-app **Gestures** and **Voice commands** reference cards.
 
 **Gestures**
 
@@ -184,8 +206,32 @@ Cursor feedback: **yellow** = listening, **green flash** = command ran, **red fl
 
 ## First-run setup
 
-> [!NOTE]
-> **Coming soon.** A step-by-step, screenshot-based first-run walkthrough is being written against the new onboarding UI. In the meantime: build & install, open the app, run the permission wizard (top to bottom), enable the accessibility service in Settings, connect the glasses, and accept both USB prompts quickly. The [Troubleshooting](#troubleshooting--qa) section below covers what to do when a step doesn't take.
+The app's home screen is a stack of cards. You only do this setup **once** — after you grant access and connect the glasses one time, the app remembers and reconnects automatically (the **SETUP** card collapses to a **✓ Complete** checkmark). Work through the cards top to bottom:
+
+**1. SETUP**
+
+1. Tap **"1. Grant permissions"** and accept each prompt — camera, notifications, and the battery-optimization exemption. (Microphone is optional; it only enables voice commands.)
+2. Connect the glasses over USB-C, then tap **"2. Connect glasses & start capture"**. Accept **both USB permission prompts as quickly as possible** — the handshake times out if you're slow. (A second prompt appears because activating the camera re-enumerates the device.)
+
+Once the camera is streaming, this card shows **✓ Complete** and collapses. You won't need to repeat it unless you reinstall the app.
+
+**2. CURSOR ON DEX**
+
+Enable the accessibility service — this is what actually draws the cursor and injects taps, and Android requires enabling it by hand:
+
+1. Tap **"Open Accessibility Settings"**.
+2. Find **"Hand Mouse"** in the list.
+3. Enable it and confirm.
+
+**3. SAMSUNG ANTI-KILL** (Samsung only, recommended)
+
+So the app isn't killed in the background during long sessions, tap through the three shortcuts: set the app's battery to **Unrestricted**, add it to **apps that never sleep**, and review your **device battery settings**. These deep-link into One UI and vary by version.
+
+**4. GESTURES & VOICE COMMANDS**
+
+These two cards are in-app cheat sheets listing everything you can do — the same reference as [Controls](#controls--gestures--voice) below. The voice-commands card follows the language you pick in the voice selector.
+
+> Prefer the command line? [Quick setup via adb](#quick-setup-via-adb) grants everything grantable in one go — only the two USB prompts still have to be accepted on the phone.
 
 ---
 
