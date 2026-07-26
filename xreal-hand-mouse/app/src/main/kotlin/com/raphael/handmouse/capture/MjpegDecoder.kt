@@ -47,9 +47,9 @@ import java.io.FileOutputStream
  * `inBitmap` do [BitmapFactory] reaproveita a memória do bitmap em vez de alocar um novo a cada
  * frame (evita pressão de GC a 60fps). Mas reutilizar UM único bitmap teria a mesma corrida que o
  * anel de saída do `FrameConverter` corrigiu (SIGSEGV — 2026-07-23): [FrameListener.onFrame] entrega
- * o bitmap, e embora o contrato exija que o consumidor copie DENTRO da chamada (o MediaPipe copia no
- * `detectAsync`), um anel de [BITMAP_RING_SIZE] posições dá folga de sobra contra qualquer cópia que
- * escape um pouco da janela síncrona. O anel é alocado na PRIMEIRA decodificação bem-sucedida, com
+ * o bitmap e o contrato exige que o consumidor copie DENTRO da chamada — um anel de
+ * [BITMAP_RING_SIZE] posições dá folga de sobra contra qualquer cópia que escape um pouco da janela
+ * síncrona. O anel é alocado na PRIMEIRA decodificação bem-sucedida, com
  * as dimensões REAIS retornadas (decode inicial sem `inBitmap`) — assim não precisamos adivinhar a
  * resolução da câmera. `inSampleSize = 2` reduz 1920x1080 → 960x540 já na decodificação (o MediaPipe
  * reduz mais internamente; 960x540 é folgado), economizando memória e tempo.
@@ -106,9 +106,16 @@ class MjpegDecoder(private val dumpDir: File? = null) {
     /**
      * Callback de frame decodificado. Chamado na THREAD do decoder de forma SÍNCRONA. O [bitmap]
      * pertence ao anel interno e só é VÁLIDO durante esta chamada — o decoder o reutiliza (`inBitmap`)
-     * nos próximos frames. O consumidor DEVE copiar/consumir de forma síncrona aqui (o MediaPipe
-     * copia no `detectAsync`) e NÃO reter o [bitmap] nem chamar `recycle()` nele. Quem implementar
-     * deve fazer `post`/`handler.post` pra main thread se for tocar UI/estado compartilhado.
+     * nos próximos frames. O consumidor DEVE copiar/consumir de forma síncrona aqui e NÃO reter o
+     * [bitmap] nem chamar `recycle()` nele. Quem implementar deve fazer `post`/`handler.post` pra
+     * main thread se for tocar UI/estado compartilhado.
+     *
+     * ATENÇÃO (fix de 2026-07-26): "entregar ao MediaPipe" NÃO conta como consumo síncrono. Um
+     * `BitmapImageBuilder(bitmap)` só EMBRULHA o bitmap — a ingestão (cópia) acontece depois, na
+     * `HandlerThread` do `HandTracker` (`detectAsync` posta pra lá), e o `MPImage` resultante vira
+     * DONO do bitmap: `MPImage.close()` chama `Bitmap.recycle()` nele. Passar um bitmap do anel
+     * direto pro `BitmapImageBuilder` portanto reciclava o anel por baixo do decoder
+     * ("Cannot reuse a recycled Bitmap" a cada frame) além de entregar imagem já sobrescrita.
      */
     interface FrameListener {
         fun onFrame(bitmap: Bitmap, timestampMs: Long)
@@ -180,19 +187,15 @@ class MjpegDecoder(private val dumpDir: File? = null) {
      * processar), `quitSafely()` + `join()` (espera o dreno em andamento terminar e a thread
      * encerrar) e então solta o anel de Bitmaps pro GC (só nula a referência — NÃO recicla).
      *
-     * ## Por que NÃO reciclar o anel aqui (mesma classe de corrida do SIGSEGV de 23/07)
+     * ## Por que NÃO reciclar o anel aqui
      * O `join()` acima garante que nenhum `onFrame` NOVO será chamado — mas NÃO garante que o
-     * consumidor já terminou de usar os bitmaps que ele JÁ recebeu. O integrador (EyeCaptureService)
-     * constrói um `MPImage` de cada bitmap do anel (`BitmapImageBuilder`) e o entrega ao MediaPipe
-     * via `detectAsync`, que COPIA o bitmap só quando a HandlerThread do HandTracker drena a fila —
-     * o que acontece DEPOIS deste `stop()`, lá no `stopPipeline` do serviço (`awaitWorkerDrain`).
-     * Reciclar o anel aqui, antes desse dreno, dispararia "Can't copy recycled bitmap" na ingestão
-     * do MediaPipe (a mesma classe de corrida do SIGSEGV registrado em hardware em 23/07: liberar
-     * memória de frame antes do dreno do worker). Bitmaps são memória GERENCIADA — o GC recolhe o
-     * anel assim que ninguém mais o referencia (incl. o MPImage pendente); 3 bitmaps de ~2MB por
-     * sessão é custo irrelevante, e a corretude vale muito mais que reciclar alguns MB uns
-     * milissegundos antes. (A ordem do fence — join do decoder ANTES do `awaitWorkerDrain` — é
-     * responsabilidade do serviço; aqui só garantimos não destruir bitmap que ainda pode ser copiado.)
+     * consumidor já terminou de usar os bitmaps que ele JÁ recebeu, e este decoder não tem como
+     * saber. Bitmaps são memória GERENCIADA: o GC recolhe o anel assim que ninguém mais o
+     * referencia, e 3 bitmaps de ~2MB por sessão é custo irrelevante perto do risco de reciclar
+     * um bitmap que um consumidor mal-comportado ainda esteja lendo (a mesma classe de corrida do
+     * SIGSEGV registrado em hardware em 23/07: liberar memória de frame antes do dreno do worker).
+     * Nada aqui depende do integrador atual — o contrato de [FrameListener.onFrame] (cópia
+     * síncrona) já garante que nenhum bitmap do anel escapa da thread do decoder.
      *
      * Idempotente: na 2ª chamada `decoderThread` já é `null`, o anel já é `null`, e tudo vira no-op
      * seguro.

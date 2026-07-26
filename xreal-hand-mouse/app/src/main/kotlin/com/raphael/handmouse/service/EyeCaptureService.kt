@@ -872,8 +872,8 @@ class EyeCaptureService : Service() {
         // novo posta detectAsync. Só um dos dois existe por stream; o outro stop() é no-op seguro.
         // Ambos ANTES do awaitWorkerDrain abaixo (mesmo ponto do fence): o join garante que não
         // entram MPImages novos, e o awaitWorkerDrain drena os já enfileirados no HandTracker.
-        // Graças à Tarefa A (o stop do MJPEG NÃO recicla o anel), não há recycle pra correr contra
-        // esse dreno — os bitmaps do anel ficam vivos pro GC até o MediaPipe copiá-los.
+        // No caminho MJPEG nada do anel do decoder sobrevive a este ponto: o que foi entregue ao
+        // MediaPipe é sempre uma CÓPIA feita dentro do onFrame (ver [mjpegFrameListener]).
         hevcDecoder?.stop()
         hevcDecoder = null
         mjpegDecoder?.stop()
