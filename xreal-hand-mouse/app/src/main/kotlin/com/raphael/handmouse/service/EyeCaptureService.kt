@@ -37,6 +37,7 @@ import com.raphael.handmouse.glasses.GlassesTransport
 import com.raphael.handmouse.glasses.KotlinGlassesProtocol
 import com.raphael.handmouse.tracking.FrameConverter
 import com.raphael.handmouse.tracking.HandTracker
+import com.raphael.handmouse.tracking.RgbaBufferRing
 import com.raphael.handmouse.util.CameraScanRetryPolicy
 import com.raphael.handmouse.util.Prefs
 import com.raphael.handmouse.util.ThermalMonitor
@@ -185,8 +186,10 @@ import java.util.concurrent.TimeUnit
  * stall em hardware, contra o HEVC nativo que engasga a cada 20-90s) e expõe qual formato negociou
  * em `activeFormatSubtype` (0x06 MJPEG / 0x10 HEVC). Em [uvcListener.onStreamStarted] o serviço
  * BIFURCA por esse subtipo: MJPEG cria um [MjpegDecoder] (entrega `Bitmap` ARGB já decodificado,
- * `BitmapImageBuilder` → `detectAsync`), HEVC segue o caminho ByteBuffer inalterado (entrega
- * `Image` YUV, [FrameConverter] → [ByteBufferImageBuilder]). Só um dos dois decoders existe por
+ * copiado pro anel [RgbaBufferRing] → [ByteBufferImageBuilder] → `detectAsync`, ver [mpImageFrom]),
+ * HEVC segue o caminho ByteBuffer inalterado (entrega `Image` YUV, [FrameConverter] →
+ * [ByteBufferImageBuilder]). Os dois caminhos terminam no MESMO tipo de container do MediaPipe,
+ * alimentado por um anel de buffers reutilizados. Só um dos dois decoders existe por
  * stream; ambos compartilham o MESMO escopo de sessão e o MESMO ponto do fence em [stopPipeline]/
  * soft-restart. O throttle térmico do MJPEG é aplicado ANTES de decodificar, via
  * [MjpegDecoder.FrameGate] = `handTracker.shouldAcceptFrame` (barato: não decodifica o que vai
@@ -431,6 +434,15 @@ class EyeCaptureService : Service() {
     // em stopPipeline e no soft-restart do onStreamStalled.
     private var mjpegDecoder: MjpegDecoder? = null
     private var frameConverter: FrameConverter? = null
+
+    // Anel RGBA do caminho MJPEG — o análogo do anel de saída do frameConverter (que serve o
+    // caminho HEVC). Ver [mjpegFrameListener]. Memória gerenciada: release() aqui é só soltar
+    // pro GC, mas segue o MESMO ponto do fence que o frameConverter, por disciplina.
+    private var mjpegRgbaRing: RgbaBufferRing? = null
+
+    // Log de uma vez só do fallback de padding de linha (ver [mpImageFrom]) — a 60fps, logar
+    // por frame viraria spam. Tocado só na thread do decoder MJPEG.
+    private var loggedMjpegStrideFallback = false
     private var pendingCameraDevice: android.hardware.usb.UsbDevice? = null
 
     // Guarda de idempotência: startPipeline()/stopPipeline() nunca duplicam/duplo-liberam
@@ -841,6 +853,10 @@ class EyeCaptureService : Service() {
         // decoder (ver Javadoc da classe, "Decode em modo ByteBuffer").
         frameConverter = FrameConverter()
 
+        // Idem pro caminho MJPEG (só um dos dois alimenta o MediaPipe por sessão; os dois alocam
+        // seus buffers sob demanda no 1º frame, então criar ambos aqui não custa memória).
+        mjpegRgbaRing = RgbaBufferRing()
+
         setState(PipelineState.CONNECTING_HID, "Conectando aos óculos...")
         glassesConnection.start()
     }
@@ -891,6 +907,11 @@ class EyeCaptureService : Service() {
 
         frameConverter?.release()
         frameConverter = null
+
+        // Mesmo ponto do fence, embora aqui não haja risco de use-after-free: os buffers do anel
+        // MJPEG são memória gerenciada, então uma ingestão em voo os mantém vivos sozinha.
+        mjpegRgbaRing?.release()
+        mjpegRgbaRing = null
 
         // handTracker.stop() por ÚLTIMO: encerra a HandlerThread usada pela fence acima — se
         // rodasse antes, awaitWorkerDrain não teria mais um Handler vivo pra postar a barreira.
@@ -1207,17 +1228,7 @@ class EyeCaptureService : Service() {
      * (`inBitmap`) nos próximos frames, então NÃO o retemos nem chamamos `recycle()` nele.
      *
      * Sem etapa de conversão YUV->RGBA aqui (ao contrário do caminho HEVC): o JPEG já vira `Bitmap`
-     * ARGB_8888 no próprio decoder. Construímos o `MPImage` a partir de uma CÓPIA do bitmap, NÃO do
-     * bitmap do anel diretamente (fix 2026-07-26, "recycled bitmap em todo frame" — visto em
-     * hardware): `BitmapImageBuilder(bitmap).build()` faz o `MPImage` DONO do bitmap passado, e
-     * `HandTracker.onMediaPipeResult` fecha essa imagem (`image.close()`) no callback assíncrono do
-     * MediaPipe (LIVE_STREAM) — que recicla o bitmap contido. Esse callback roda em thread própria e
-     * pode atrasar mais que o ciclo do anel de 3 posições, então o decoder tentava reusar
-     * (`inBitmap`) um slot que o MediaPipe ainda estava processando ou já tinha reciclado,
-     * disparando "Cannot reuse a recycled Bitmap" a cada frame e mascarando falhas de detecção
-     * (imagem corrompida/vazia entregue ao HandLandmarker). A cópia rompe o compartilhamento: o
-     * `MPImage` passa a ser dono de um bitmap independente que o MediaPipe recicla quando quiser,
-     * sem afetar o anel do decoder.
+     * ARGB_8888 no próprio decoder — só copiamos os pixels pro anel RGBA (ver [mpImageFrom]).
      *
      * O throttle térmico/fps NÃO é reavaliado aqui: já foi aplicado ANTES do decode via
      * [MjpegDecoder.FrameGate] (shouldAcceptFrame), então todo frame que chega aqui já passou pelo
@@ -1225,9 +1236,13 @@ class EyeCaptureService : Service() {
      */
     private val mjpegFrameListener = object : MjpegDecoder.FrameListener {
         override fun onFrame(bitmap: Bitmap, timestampMs: Long) {
+            // Escopo de SESSÃO (ver campo): no teardown o anel pode já ter sido solto. Mesma
+            // checagem defensiva do frameConverter em [decoderFrameListener] — na prática nunca
+            // dispara (o join do mjpegDecoder.stop() vem antes), e descartar um frame durante o
+            // teardown não tem consequência.
+            val ring = mjpegRgbaRing ?: return
             try {
-                val mpImage = BitmapImageBuilder(Bitmap.createBitmap(bitmap)).build()
-                handTracker.detectAsync(mpImage, timestampMs)
+                handTracker.detectAsync(mpImageFrom(bitmap, ring), timestampMs)
 
                 // Ver [previewFramesEnabled] — sem preview visível, nenhuma alocação de UI. A CÓPIA
                 // é obrigatória: o bitmap do anel é reutilizado no próximo frame, então não pode ir
@@ -1240,6 +1255,54 @@ class EyeCaptureService : Service() {
                 Log.e(TAG, "Erro ao processar frame MJPEG", e)
             }
         }
+    }
+
+    /**
+     * Embrulha o `bitmap` do anel do [MjpegDecoder] num [MPImage] SEM alocar por frame: copia os
+     * pixels (`copyPixelsToBuffer`, um memcpy) pro próximo buffer do [ring] e entrega esse buffer
+     * ao `ByteBufferImageBuilder` — o MESMO tipo de container que o caminho HEVC já usa.
+     * `Bitmap.Config.ARGB_8888` tem layout R,G,B,A em memória, que é exatamente
+     * `MPImage.IMAGE_FORMAT_RGBA` (o próprio MediaPipe faz esse mapeamento ao ingerir um Bitmap).
+     *
+     * ## Por que NÃO entregar o bitmap (nem uma cópia dele) pro `BitmapImageBuilder`
+     * `BitmapImageBuilder(b)` faz o `MPImage` DONO do bitmap: `MPImage.close()` — chamado por
+     * [HandTracker.onMediaPipeResult] no callback do MediaPipe — executa `Bitmap.recycle()` nele.
+     * Entregar o bitmap do anel direto reciclava o anel por baixo do decoder ("Cannot reuse a
+     * recycled Bitmap" a cada frame, visto em hardware — PR #1) e ainda entregava um slot que o
+     * decoder já podia ter sobrescrito, porque a ingestão do MediaPipe não roda aqui e sim na
+     * `HandlerThread` do [handTracker] (`detectAsync` posta pra lá). Entregar uma CÓPIA do bitmap
+     * conserta a corretude, mas alocava ~1MB POR FRAME a até 60fps — justamente a pressão de GC
+     * que o `inBitmap` do decoder existe pra evitar. Com o container de `ByteBuffer` o `close()` é
+     * no-op: o buffer volta pro anel e o custo por frame vira só o memcpy.
+     *
+     * ## Fallback: padding de linha
+     * `PacketCreator.createImage` assume `widthStep = width * 4` (e exige capacidade EXATA). Skia
+     * não põe padding em bitmaps ARGB_8888, mas se algum dispositivo devolver `rowBytes` maior,
+     * `copyPixelsToBuffer` copiaria o padding junto e a imagem sairia cisalhada — nesse caso
+     * caímos no caminho da cópia de bitmap (correto, só mais caro), logando UMA vez.
+     */
+    private fun mpImageFrom(bitmap: Bitmap, ring: RgbaBufferRing): MPImage {
+        if (bitmap.rowBytes != bitmap.width * 4) {
+            if (!loggedMjpegStrideFallback) {
+                loggedMjpegStrideFallback = true
+                Log.w(
+                    TAG,
+                    "Bitmap MJPEG com padding de linha (rowBytes=${bitmap.rowBytes}, " +
+                        "width=${bitmap.width}) — caindo na cópia de bitmap por frame",
+                )
+            }
+            return BitmapImageBuilder(Bitmap.createBitmap(bitmap)).build()
+        }
+
+        val buffer = ring.next(bitmap.width, bitmap.height)
+        bitmap.copyPixelsToBuffer(buffer)
+        buffer.rewind()
+        return ByteBufferImageBuilder(
+            buffer,
+            bitmap.width,
+            bitmap.height,
+            MPImage.IMAGE_FORMAT_RGBA,
+        ).build()
     }
 
     /**
