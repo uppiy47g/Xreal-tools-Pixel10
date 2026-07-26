@@ -1204,12 +1204,20 @@ class EyeCaptureService : Service() {
     /**
      * Roda na THREAD do decoder MJPEG ([MjpegDecoder.FrameListener.onFrame], SÍNCRONO). O `bitmap`
      * pertence ao anel interno do decoder e só é VÁLIDO durante esta chamada — o decoder o reutiliza
-     * (`inBitmap`) nos próximos frames, então NÃO o retemos nem chamamos `recycle()`.
+     * (`inBitmap`) nos próximos frames, então NÃO o retemos nem chamamos `recycle()` nele.
      *
      * Sem etapa de conversão YUV->RGBA aqui (ao contrário do caminho HEVC): o JPEG já vira `Bitmap`
-     * ARGB_8888 no próprio decoder, então construímos o `MPImage` direto dele
-     * (`BitmapImageBuilder`) e chamamos `detectAsync` — o MediaPipe COPIA o bitmap na ingestão
-     * (essa cópia é o que o `awaitWorkerDrain` do stopPipeline drena antes de soltar o anel).
+     * ARGB_8888 no próprio decoder. Construímos o `MPImage` a partir de uma CÓPIA do bitmap, NÃO do
+     * bitmap do anel diretamente (fix 2026-07-26, "recycled bitmap em todo frame" — visto em
+     * hardware): `BitmapImageBuilder(bitmap).build()` faz o `MPImage` DONO do bitmap passado, e
+     * `HandTracker.onMediaPipeResult` fecha essa imagem (`image.close()`) no callback assíncrono do
+     * MediaPipe (LIVE_STREAM) — que recicla o bitmap contido. Esse callback roda em thread própria e
+     * pode atrasar mais que o ciclo do anel de 3 posições, então o decoder tentava reusar
+     * (`inBitmap`) um slot que o MediaPipe ainda estava processando ou já tinha reciclado,
+     * disparando "Cannot reuse a recycled Bitmap" a cada frame e mascarando falhas de detecção
+     * (imagem corrompida/vazia entregue ao HandLandmarker). A cópia rompe o compartilhamento: o
+     * `MPImage` passa a ser dono de um bitmap independente que o MediaPipe recicla quando quiser,
+     * sem afetar o anel do decoder.
      *
      * O throttle térmico/fps NÃO é reavaliado aqui: já foi aplicado ANTES do decode via
      * [MjpegDecoder.FrameGate] (shouldAcceptFrame), então todo frame que chega aqui já passou pelo
@@ -1218,7 +1226,7 @@ class EyeCaptureService : Service() {
     private val mjpegFrameListener = object : MjpegDecoder.FrameListener {
         override fun onFrame(bitmap: Bitmap, timestampMs: Long) {
             try {
-                val mpImage = BitmapImageBuilder(bitmap).build()
+                val mpImage = BitmapImageBuilder(Bitmap.createBitmap(bitmap)).build()
                 handTracker.detectAsync(mpImage, timestampMs)
 
                 // Ver [previewFramesEnabled] — sem preview visível, nenhuma alocação de UI. A CÓPIA
