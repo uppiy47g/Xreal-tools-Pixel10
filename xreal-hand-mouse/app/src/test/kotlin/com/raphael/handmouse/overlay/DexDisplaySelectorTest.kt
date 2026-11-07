@@ -5,9 +5,8 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 /**
- * TDD da prioridade de seleção do display do DeX (brief Tarefa 4, PLANO.md §3.4/§6.4):
- * categoria Samsung DESKTOP > DISPLAY_CATEGORY_PRESENTATION > nenhum. Função pura sobre
- * [CategorizedDisplay] (sem android.view.Display) para rodar 100% em JVM, sem Robolectric.
+ * Display priority: Samsung DESKTOP > DISPLAY_CATEGORY_PRESENTATION.
+ * The selector is pure JVM code (no android.view.Display or Robolectric needed).
  */
 class DexDisplaySelectorTest {
 

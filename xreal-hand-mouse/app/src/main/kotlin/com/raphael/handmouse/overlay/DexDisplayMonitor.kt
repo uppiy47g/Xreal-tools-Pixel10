@@ -13,12 +13,10 @@ private const val TAG = "DexDisplayMonitor"
 private const val CATEGORY_SAMSUNG_DESKTOP = "com.samsung.android.hardware.display.category.DESKTOP"
 
 /**
- * Descobre e observa o display do DeX — PLANO.md §3.4/§6.4, brief Tarefa 4. Categoria Samsung
- * `DESKTOP` primeiro, fallback `DISPLAY_CATEGORY_PRESENTATION`; NUNCA hardcodar displayId (o
- * id típico é 2 num Samsung, mas não é garantido, e o modo UltraWide re-enumera o display). A
- * prioridade de seleção em si é a função pura [DexDisplaySelector.select] (testada em JVM sem
- * Android — ver [CategorizedDisplay]); esta classe só faz a ponte com `DisplayManager`/`Display`
- * reais e republica mudanças via [Listener].
+ * Descobre e observa o display externo de desktop. As categorias Samsung `DESKTOP` e Android
+ * `PRESENTATION` são usadas para encontrar um display adequado. Nunca fixa displayId: os IDs podem mudar
+ * quando os displays ou modos são reenumerados. A seleção é feita pela função JVM pura
+ * [DexDisplaySelector.select]; esta classe a conecta aos displays Android reais.
  *
  * Cada instância registra seu PRÓPRIO `DisplayManager.DisplayListener` — não existe um monitor
  * global único. `MainActivity` (status somente-leitura) e `HandMouseAccessibilityService` (dono
@@ -29,8 +27,7 @@ private const val CATEGORY_SAMSUNG_DESKTOP = "com.samsung.android.hardware.displ
 class DexDisplayMonitor(private val context: Context) {
 
     fun interface Listener {
-        /** Chamado sempre que o display do DeX selecionado muda: aparecer, sumir
-         * (`display == null`) ou trocar (hot-plug dos óculos / troca de modo UltraWide). */
+        /** Called when the selected external display appears, disappears, or changes. */
         fun onDexDisplayChanged(display: Display?)
     }
 
@@ -59,13 +56,10 @@ class DexDisplayMonitor(private val context: Context) {
 
     /**
      * Bounds reais (pixels) do [display], via `createDisplayContext` + `createWindowContext` +
-     * `currentWindowMetrics` — PLANO.md §3.4 (nunca hardcodar; chamar de novo aqui a cada
-     * mudança de display, nunca cachear por muito tempo: a troca de modo normal↔UltraWide dos
-     * óculos muda a resolução do DeX em runtime). [windowType] deve ser o MESMO tipo de janela
-     * que será de fato criada nesse display (aqui, `TYPE_ACCESSIBILITY_OVERLAY`) — chamar isto
-     * a partir de um [context] que não seja um `AccessibilityService` vinculado pode falhar;
-     * retorna `null` nesse caso (o chamador cai pro fallback de status — ver `MainActivity`,
-     * que usa `display.mode.physicalWidth/Height` em vez disso, deliberadamente).
+     * `currentWindowMetrics`. Recalcular após mudanças de display, pois a resolução pode mudar
+     * em runtime. [windowType] deve ser o mesmo tipo de janela que será criado nesse display
+     * (`TYPE_ACCESSIBILITY_OVERLAY`); chamar a partir de um [context] que não seja um
+     * `AccessibilityService` vinculado pode falhar, retornando `null`.
      */
     fun windowBounds(
         display: Display,

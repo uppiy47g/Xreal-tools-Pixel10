@@ -183,6 +183,8 @@ class MainActivity : AppCompatActivity(), EyeCaptureService.StateListener, EyeCa
         btnBatteryAppSettings = findViewById(R.id.btnBatteryAppSettings)
         btnBatteryBackgroundUsage = findViewById(R.id.btnBatteryBackgroundUsage)
         btnBatteryDeviceSettings = findViewById(R.id.btnBatteryDeviceSettings)
+        findViewById<View>(R.id.samsungBatteryCard).visibility =
+            if (Build.MANUFACTURER.equals("samsung", ignoreCase = true)) View.VISIBLE else View.GONE
 
         prefs = Prefs(this)
 
@@ -344,7 +346,7 @@ class MainActivity : AppCompatActivity(), EyeCaptureService.StateListener, EyeCa
             getString(R.string.dex_display_status_none)
         } else {
             val mode = display.mode
-            "Display do DeX: id=${display.displayId} \"${display.name}\" ${mode.physicalWidth}x${mode.physicalHeight}"
+            "External display: id=${display.displayId} \"${display.name}\" ${mode.physicalWidth}x${mode.physicalHeight}"
         }
     }
 

@@ -1,8 +1,8 @@
 # Hand Mouse for XREAL One Pro
 
-**Control a cursor on Samsung DeX with your bare hands, using the XREAL One Pro's Eye camera.**
+**Control a cursor on an external desktop display with your bare hands, using the XREAL One Pro's Eye camera.**
 
-Hand Mouse turns the RGB "Eye" camera built into the [XREAL One Pro](https://www.xreal.com/) glasses into a hands-free pointing device. It streams the camera over USB, runs on-device hand tracking (Google MediaPipe), and moves a cursor — and injects real taps, drags, scrolls and media controls — onto your phone's Samsung DeX desktop. Pinch to click. Hold to drag. Wave your palm to skip a video. Say "back" to go back.
+Hand Mouse turns the RGB "Eye" camera built into the [XREAL One Pro](https://www.xreal.com/) glasses into a hands-free pointing device. It streams the camera over USB, runs on-device hand tracking (Google MediaPipe), and moves a cursor — and injects real taps, drags, scrolls and media controls — onto your phone's external desktop display. Pinch to click. Hold to drag. Wave your palm to skip a video. Say "back" to go back.
 
 > [!IMPORTANT]
 > **Not affiliated with XREAL.** This is an independent, unofficial hobby project. "XREAL" and "Nreal" are trademarks of their respective owner and are used here only to describe hardware compatibility. This project is not endorsed by or sponsored by XREAL. Use at your own risk — you are interfacing with your own hardware.
@@ -29,14 +29,20 @@ Hand Mouse turns the RGB "Eye" camera built into the [XREAL One Pro](https://www
 **Hardware**
 
 - **XREAL One Pro** glasses (the model with the RGB Eye camera).
-- A **Samsung phone that supports DeX** (e.g. Galaxy S-series). The cursor is drawn onto the DeX desktop display, so DeX is effectively required — a plain phone screen has no DeX display for the overlay to target.
+- A phone that supports an external desktop display, such as a **Samsung phone with DeX**. **Pixel 10 Pro support is experimental** and requires Android's desktop mode on a wired external display; physical-device validation is still required. A plain mirrored phone screen has no separate desktop display for the cursor overlay.
 - A **USB-C** connection between the glasses and the phone.
 
 **Software / to build**
 
-- **Android 14 or newer** on the phone (`minSdk = 34`, `targetSdk = 35`).
+- **Android 14 or newer** on the phone (`minSdk = 34`, `targetSdk = 35`). Pixel desktop mode requires a compatible Android version/build with desktop mode enabled.
 - **arm64-v8a** device (the app ships `arm64-v8a` only).
 - To build: **JDK 17** and the **Android SDK (API 35)**. The included Gradle wrapper handles the rest.
+
+On Pixel, the app currently relies on Android reporting the connected display in the
+`DISPLAY_CATEGORY_PRESENTATION` category. Pixel 10 Pro compatibility, USB camera capture and
+gesture injection on the external display have not yet been verified on hardware. If the
+display is not detected, collect the Android display and application logs before changing the
+selection logic; selecting an arbitrary secondary display could direct gestures to the wrong screen.
 
 ---
 
@@ -45,7 +51,7 @@ Hand Mouse turns the RGB "Eye" camera built into the [XREAL One Pro](https://www
 The app runs entirely in one process, organized around **two services**:
 
 - **`EyeCaptureService`** — a foreground service that owns the capture pipeline. It performs the Kotlin USB handshake that turns on the Eye camera, reads the video stream, decodes it, and runs hand tracking.
-- **`HandMouseAccessibilityService`** — an [AccessibilityService](https://developer.android.com/guide/topics/ui/accessibility/service) that owns the on-screen cursor overlay and injects the actual taps/gestures onto the DeX display. It also runs a watchdog that revives capture if it dies.
+- **`HandMouseAccessibilityService`** — an [AccessibilityService](https://developer.android.com/guide/topics/ui/accessibility/service) that owns the on-screen cursor overlay and injects the actual taps/gestures onto the external desktop display. It also runs a watchdog that revives capture if it dies.
 
 End to end: the glasses are activated over a pure-Kotlin USB control channel (`WaitPilotReady → GetUsbConfigAll → SetUsbConfigAll(uvc0=1) → GetCameraStatus`), which re-enumerates the device and exposes its UVC video interface. Frames are read over a bulk endpoint, decoded (MJPEG or HEVC), converted to RGBA (downscaled to 768×576 via libyuv), and fed to MediaPipe HandLandmarker (LIVE_STREAM / GPU). The resulting 21 hand landmarks drive a cursor pipeline (relative "trackpad" mapping → One-Euro smoothing → radial dead-zone) and a set of gesture detectors, which become real touch events via `dispatchGesture`.
 
@@ -69,10 +75,10 @@ GlassesConnection ──activate uvc0──► re-enumerate ──► UvcCameraH
                   │                    │                       │
                   ▼                    ▼                       ▼
            CursorOverlay      ClickDragStateMachine     gesture detectors
-          (DeX display)               │             (fist / palm / thumb / V)
+          (external display)               │             (fist / palm / thumb / V)
                                       ▼                       │
                                GestureInjector ◄──────────────┘
-                           (dispatchGesture on the DeX displayId)
+                           (dispatchGesture on the external displayId)
 ```
 
 | Layer | Package | Key classes |
@@ -197,7 +203,7 @@ There is also an **"anti-kill" checklist** (Samsung only) that deep-links you to
 | "recents" / "recentes" | Recent apps |
 | "send" / "enviar" | Press Enter in the focused field |
 | "clear" / "apagar tudo" | Clear the focused field |
-| "open \<app\>" / "abrir \<app\>" | Launch an app by name on the DeX display |
+| "open \<app\>" / "abrir \<app\>" | Launch an app by name on the external display |
 | "write \<text\>" / "escrever \<texto\>" | Dictate text into the focused field |
 
 Cursor feedback: **yellow** = listening, **green flash** = command ran, **red flash** = error / no match.
@@ -218,7 +224,7 @@ Once the camera is streaming, this card shows **✓ Complete** and collapses. Yo
 > [!NOTE]
 > **Known issue:** right after this first-time setup and granting all permissions, you may need to **unplug and replug the glasses once or twice** before capture starts reliably. A fix is on the way.
 
-**2. CURSOR ON DEX**
+**2. CURSOR ON EXTERNAL DISPLAY**
 
 Enable the accessibility service — this is what actually draws the cursor and injects taps, and Android requires enabling it by hand:
 
@@ -263,8 +269,8 @@ The cable actually dropped. (The brief detach *during* the handshake's re-enumer
 ### "Capture stopped running — tap to reopen the app"
 The capture process was killed by the system and couldn't restart in the background (Android 14 restricts background microphone foreground-services). **Fix:** tap the notification to reopen. **Prevention:** complete the anti-kill checklist (battery *Unrestricted* + "never sleeping apps") and the battery-optimization exemption.
 
-### No cursor on DeX
-Check, in order: (1) the **accessibility service is enabled**; (2) a **DeX display exists** (the overlay only draws on a DeX/desktop display); (3) a freshly-created DeX display may reject windows briefly — the app retries 8× over ~2 s; (4) the cursor may be **muted** (thumbs-up 1 s to re-enable); (5) the cursor **fades after 2 s idle** by design — move your hand.
+### No cursor on the external display
+Check, in order: (1) the **accessibility service is enabled**; (2) an **external desktop display exists** (the overlay does not draw on a plain mirrored phone screen); (3) a newly-created display may reject windows briefly — the app retries 8× over ~2 s; (4) the cursor may be **muted** (thumbs-up 1 s to re-enable); (5) the cursor **fades after 2 s idle** by design — move your hand.
 
 ### The cursor is frozen but tracking is alive
 You're in **media mode** (an open, still palm freezes the cursor for swipes — intentional). **Fix:** curl any finger (or bring your thumb toward your index) to exit; the cursor re-anchors without a jump.

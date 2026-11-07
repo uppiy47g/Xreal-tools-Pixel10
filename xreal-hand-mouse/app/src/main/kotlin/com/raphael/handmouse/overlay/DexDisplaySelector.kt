@@ -12,14 +12,15 @@ data class CategorizedDisplay(
 )
 
 /**
- * Prioridade de seleção do display do DeX — PLANO.md §3.4/§6.4: categoria Samsung
- * `DESKTOP` > `DISPLAY_CATEGORY_PRESENTATION` > nenhum. Função pura sobre a lista já
- * categorizada — nada de Android aqui, para que [DexDisplayMonitor] permaneça a única classe
+ * Prioridade de seleção do display externo: categoria Samsung `DESKTOP` >
+ * `DISPLAY_CATEGORY_PRESENTATION` > nenhum. Função pura sobre a lista
+ * já categorizada — nada de Android aqui, para que [DexDisplayMonitor] permaneça a única classe
  * desta tarefa que efetivamente toca `DisplayManager`/`Display`.
  */
 object DexDisplaySelector {
     fun select(displays: List<CategorizedDisplay>): CategorizedDisplay? =
-        displays.firstOrNull { it.isDesktop } ?: displays.firstOrNull { it.isPresentation }
+        displays.firstOrNull { it.isDesktop }
+            ?: displays.firstOrNull { it.isPresentation }
 }
 
 /**

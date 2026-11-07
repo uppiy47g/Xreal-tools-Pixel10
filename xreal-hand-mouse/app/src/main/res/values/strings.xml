@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Hand Mouse</string>
-    <string name="app_subtitle">Gesture mouse for XREAL + DeX</string>
+    <string name="app_subtitle">Gesture mouse for XREAL + external display</string>
     <string name="notif_channel_capture">Eye camera capture</string>
     <string name="notif_capture_text">Capturing eye camera</string>
     <string name="status_idle">Waiting for permissions…</string>
@@ -9,13 +9,13 @@
     <string name="btn_start_capture">2. Connect glasses &amp; start capture</string>
     <string name="usb_prompt_warning">Connect the glasses and accept both USB permission prompts as quickly as possible — the handshake times out if it takes too long.</string>
     <string name="btn_open_accessibility_settings">Open Accessibility Settings</string>
-    <string name="accessibility_status_active">Accessibility service (DeX cursor): active</string>
-    <string name="accessibility_status_inactive">Accessibility service (DeX cursor): inactive — enable it below</string>
-    <string name="dex_display_status_none">DeX display: not found</string>
+    <string name="accessibility_status_active">Accessibility service (external display cursor): active</string>
+    <string name="accessibility_status_inactive">Accessibility service (external display cursor): inactive — enable it below</string>
+    <string name="dex_display_status_none">External desktop display: not found</string>
 
     <!-- Eyebrows (section labels) — uppercase by visual convention of an instrument panel -->
     <string name="section_setup">SETUP</string>
-    <string name="section_cursor">CURSOR ON DEX</string>
+    <string name="section_cursor">CURSOR ON EXTERNAL DISPLAY</string>
     <string name="section_battery">SAMSUNG ANTI-KILL</string>
     <string name="btn_preview_show">Show</string>
     <string name="btn_preview_hide">Hide</string>
