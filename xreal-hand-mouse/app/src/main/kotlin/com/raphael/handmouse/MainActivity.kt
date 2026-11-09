@@ -23,7 +23,9 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.RadioGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import com.raphael.handmouse.capture.GlassesConnection
 import com.raphael.handmouse.overlay.DexDisplayMonitor
@@ -243,6 +245,7 @@ class MainActivity : AppCompatActivity(), EyeCaptureService.StateListener, EyeCa
         dexDisplayMonitor = DexDisplayMonitor(this).apply {
             listener = DexDisplayMonitor.Listener { display -> updateDexDisplayStatus(display) }
         }
+        findViewById<Button>(R.id.btnSelectDisplay).setOnClickListener { selectExternalDisplay() }
 
         val filter = IntentFilter(UsbManager.ACTION_USB_DEVICE_ATTACHED)
         val permFilter = IntentFilter(ACTION_MAIN_USB_PERMISSION)
@@ -348,6 +351,41 @@ class MainActivity : AppCompatActivity(), EyeCaptureService.StateListener, EyeCa
             val mode = display.mode
             "External display: id=${display.displayId} \"${display.name}\" ${mode.physicalWidth}x${mode.physicalHeight}"
         }
+    }
+
+    private fun selectExternalDisplay() {
+        val displays = dexDisplayMonitor.selectableDisplays()
+        val diagnostics = dexDisplayMonitor.displayDiagnostics()
+        appendLog("Android displays:\n$diagnostics")
+        if (displays.isEmpty()) {
+            AlertDialog.Builder(this)
+                .setTitle(R.string.select_display_title)
+                .setMessage(getString(R.string.select_display_none, diagnostics))
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
+            return
+        }
+        val labels = arrayOf(getString(R.string.select_display_auto)) + displays.map { display ->
+            val mode = display.mode
+            "${display.name} (id=${display.displayId}, ${mode.physicalWidth}x${mode.physicalHeight})"
+        }
+        val selectedName = prefs.selectedDisplayName
+        val checked = if (selectedName == null) 0 else
+            displays.indexOfFirst { it.name == selectedName }.let { if (it < 0) -1 else it + 1 }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.select_display_title)
+            .setSingleChoiceItems(labels, checked) { dialog, which ->
+                if (which > 0 && displays.count { it.name == displays[which - 1].name } > 1) {
+                    appendLog(getString(R.string.select_display_ambiguous))
+                    Toast.makeText(this, R.string.select_display_ambiguous, Toast.LENGTH_LONG).show()
+                    return@setSingleChoiceItems
+                }
+                prefs.selectedDisplayName = if (which == 0) null else displays[which - 1].name
+                appendLog("Display selection: ${labels[which]}")
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     // --- Wizard de permissões ---

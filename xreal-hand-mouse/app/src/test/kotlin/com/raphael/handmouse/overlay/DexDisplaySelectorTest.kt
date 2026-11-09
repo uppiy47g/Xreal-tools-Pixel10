@@ -11,6 +11,58 @@ import org.junit.Test
 class DexDisplaySelectorTest {
 
     @Test
+    fun `manual selection supports uncategorized Pixel desktop`() {
+        val desktop = CategorizedDisplay(3, false, false, name = "XREAL")
+        val displays = listOf(CategorizedDisplay(0, false, false, name = "Phone"), desktop)
+
+        assertNull(DexDisplaySelector.select(displays))
+        assertEquals(desktop, DexDisplaySelector.select(displays, "XREAL"))
+    }
+
+    @Test
+    fun `manual selection takes precedence over automatic categories`() {
+        val chosen = CategorizedDisplay(4, false, false, name = "XREAL")
+        val displays = listOf(CategorizedDisplay(2, true, true, name = "Other"), chosen)
+
+        assertEquals(chosen, DexDisplaySelector.select(displays, "XREAL"))
+    }
+
+    @Test
+    fun `missing manual target never falls back to another display`() {
+        assertNull(DexDisplaySelector.select(
+            listOf(CategorizedDisplay(2, true, true, name = "Other")), "XREAL"
+        ))
+    }
+
+    @Test
+    fun `manual selection survives display ID changes`() {
+        val chosen = CategorizedDisplay(8, false, false, name = "XREAL")
+        assertEquals(chosen, DexDisplaySelector.select(listOf(chosen), "XREAL"))
+    }
+
+    @Test
+    fun `ambiguous manual display names do not select a target`() {
+        assertNull(DexDisplaySelector.select(listOf(
+            CategorizedDisplay(2, false, false, name = "External"),
+            CategorizedDisplay(3, false, false, name = "External"),
+        ), "External"))
+    }
+
+    @Test
+    fun `phone private and invalid displays are excluded even if categorized`() {
+        val displays = listOf(
+            CategorizedDisplay(0, true, true, name = "Phone"),
+            CategorizedDisplay(2, true, true, name = "Private", isPrivate = true),
+            CategorizedDisplay(3, true, true, name = "Removed", isValid = false),
+        )
+        assertEquals(emptyList<CategorizedDisplay>(), DexDisplaySelector.candidates(displays))
+        assertNull(DexDisplaySelector.select(displays))
+        for (name in listOf("Phone", "Private", "Removed")) {
+            assertNull(DexDisplaySelector.select(displays, name))
+        }
+    }
+
+    @Test
     fun `desktop tem prioridade sobre presentation`() {
         val displays = listOf(
             CategorizedDisplay(displayId = 1, isDesktop = false, isPresentation = true),

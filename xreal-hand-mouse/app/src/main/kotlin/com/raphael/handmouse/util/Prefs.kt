@@ -28,6 +28,7 @@ class Prefs(context: Context) {
         private const val KEY_SETUP_SECTION_EXPANDED = "setup_section_expanded"
         private const val KEY_GESTURES_VISIBLE = "gestures_visible"
         private const val KEY_VOICE_COMMANDS_VISIBLE = "voice_commands_visible"
+        const val KEY_SELECTED_DISPLAY = "selected_display_name"
 
         /** Valor especial de [voiceLanguage]: usa o idioma do sistema (default). */
         const val VOICE_LANGUAGE_SYSTEM = "system"
@@ -35,6 +36,18 @@ class Prefs(context: Context) {
 
     private val prefs: SharedPreferences =
         context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    var selectedDisplayName: String?
+        get() = prefs.getString(KEY_SELECTED_DISPLAY, null)
+        set(value) = prefs.edit().putString(KEY_SELECTED_DISPLAY, value).apply()
+
+    fun registerChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+    }
+
+    fun unregisterChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
+        prefs.unregisterOnSharedPreferenceChangeListener(listener)
+    }
 
     /** Preview da câmera + esqueleto na MainActivity visível? Default FALSE (recolhido) de
      * propósito (2026-07-23, pedido do usuário): com o preview recolhido a Activity se

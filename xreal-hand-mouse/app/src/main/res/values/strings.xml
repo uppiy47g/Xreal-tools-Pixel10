@@ -12,6 +12,11 @@
     <string name="accessibility_status_active">Accessibility service (external display cursor): active</string>
     <string name="accessibility_status_inactive">Accessibility service (external display cursor): inactive — enable it below</string>
     <string name="dex_display_status_none">External desktop display: not found</string>
+    <string name="select_display_title">Select external display</string>
+    <string name="select_display_auto">Automatic (DeX / Presentation)</string>
+    <string name="select_display_help">If the desktop is visible in your glasses but not found here, select its display manually. While no display is selected, cursor and gesture actions do not run.</string>
+    <string name="select_display_none">Android is not exposing an eligible secondary display to this app. Keep the glasses connected in desktop mode and try again. Available display diagnostics:\n%1$s</string>
+    <string name="select_display_ambiguous">Multiple displays have the same name. Disconnect other displays before choosing the glasses.</string>
 
     <!-- Eyebrows (section labels) — uppercase by visual convention of an instrument panel -->
     <string name="section_setup">SETUP</string>

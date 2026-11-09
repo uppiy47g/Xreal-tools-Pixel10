@@ -231,6 +231,22 @@
                     android:textColor="@color/hm_text_secondary"
                     android:text="@string/dex_display_status_none" />
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSelectDisplay"
+                    style="@style/Hm.Button.Outlined"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/select_display_title" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textSize="12sp"
+                    android:textColor="@color/hm_text_secondary"
+                    android:text="@string/select_display_help" />
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

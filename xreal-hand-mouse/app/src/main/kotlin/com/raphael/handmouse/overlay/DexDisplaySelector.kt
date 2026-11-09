@@ -9,18 +9,33 @@ data class CategorizedDisplay(
     val displayId: Int,
     val isDesktop: Boolean,
     val isPresentation: Boolean,
+    val name: String? = null,
+    val isPrivate: Boolean = false,
+    val isValid: Boolean = true,
 )
 
 /**
- * Prioridade de seleção do display externo: categoria Samsung `DESKTOP` >
+ * A seleção manual por nome tem prioridade; no modo automático: categoria Samsung `DESKTOP` >
  * `DISPLAY_CATEGORY_PRESENTATION` > nenhum. Função pura sobre a lista
  * já categorizada — nada de Android aqui, para que [DexDisplayMonitor] permaneça a única classe
  * desta tarefa que efetivamente toca `DisplayManager`/`Display`.
  */
 object DexDisplaySelector {
-    fun select(displays: List<CategorizedDisplay>): CategorizedDisplay? =
-        displays.firstOrNull { it.isDesktop }
-            ?: displays.firstOrNull { it.isPresentation }
+    fun candidates(displays: List<CategorizedDisplay>): List<CategorizedDisplay> =
+        displays.filter { it.displayId != 0 && it.isValid && !it.isPrivate }
+
+    fun select(
+        displays: List<CategorizedDisplay>,
+        selectedName: String? = null,
+    ): CategorizedDisplay? {
+        val candidates = candidates(displays)
+        // A missing manual target must not redirect gestures to a different display.
+        if (selectedName != null) {
+            return candidates.singleOrNull { it.name == selectedName }
+        }
+        return candidates.firstOrNull { it.isDesktop }
+            ?: candidates.firstOrNull { it.isPresentation }
+    }
 }
 
 /**

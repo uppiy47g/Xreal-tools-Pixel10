@@ -38,11 +38,26 @@ Hand Mouse turns the RGB "Eye" camera built into the [XREAL One Pro](https://www
 - **arm64-v8a** device (the app ships `arm64-v8a` only).
 - To build: **JDK 17** and the **Android SDK (API 35)**. The included Gradle wrapper handles the rest.
 
-On Pixel, the app currently relies on Android reporting the connected display in the
-`DISPLAY_CATEGORY_PRESENTATION` category. Pixel 10 Pro compatibility, USB camera capture and
-gesture injection on the external display have not yet been verified on hardware. If the
-display is not detected, collect the Android display and application logs before changing the
-selection logic; selecting an arbitrary secondary display could direct gestures to the wrong screen.
+Automatic display detection prefers Samsung DeX, then Android's
+`DISPLAY_CATEGORY_PRESENTATION`. Some Pixel desktops are not reported in these categories.
+If the desktop is visible in the glasses but the app says **External desktop display: not found**:
+
+1. Keep the glasses connected with desktop mode active.
+2. Tap **Select external display** in the cursor card and choose the glasses' display.
+3. Check that the status shows its name and ID, then test cursor movement and gestures.
+
+The selection is shared immediately with the accessibility service and saved by display name,
+not a hardcoded display ID. The phone's default screen, private displays and invalid displays
+are excluded. If the chosen display is missing or its name is ambiguous, no other screen is
+selected automatically. Choose **Automatic (DeX / Presentation)** to restore automatic detection.
+If there are no eligible displays, the dialog explains this and shows the displays Android
+exposes to the app; the same diagnostics appear in **LOG**.
+
+Camera streaming and the hand skeleton in the preview are separate from cursor operation:
+**STREAMING** alone does not mean gestures are active. Without a selected display and usable
+window bounds, cursor actions, thumbs-up and V-sign handling do not run.
+Pixel 10 Pro camera streaming and hand skeleton tracking have been reported working by the
+tester; this manual-selection fix and gesture injection still require physical-device validation.
 
 ---
 
